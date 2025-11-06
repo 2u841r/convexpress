@@ -96,16 +96,10 @@ function PostsManager() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/3">
                   Title
                 </th>
-                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky right-0 bg-gray-50">
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">
                   Actions
                 </th>
               </tr>
@@ -115,22 +109,20 @@ function PostsManager() {
                 <tr key={post._id}>
                   <td className="px-3 sm:px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">{post.title}</div>
-                    <div className="text-sm text-gray-500">{post.slug}</div>
+                    <div className="text-xs text-gray-500 mt-1">{post.slug}</div>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        post.status === "published" 
+                          ? "bg-green-100 text-green-800" 
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}>
+                        {post.status}
+                      </span>
+                      <span>{new Date(post._creationTime).toLocaleDateString()}</span>
+                    </div>
                   </td>
-                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      post.status === "published" 
-                        ? "bg-green-100 text-green-800" 
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}>
-                      {post.status}
-                    </span>
-                  </td>
-                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(post._creationTime).toLocaleDateString()}
-                  </td>
-                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium sticky right-0 bg-white">
-                    <div className="flex gap-2">
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex gap-2 justify-end">
                       <button
                         onClick={() => {
                           setEditingPost(post);
@@ -145,8 +137,10 @@ function PostsManager() {
                           void deletePost({ id: post._id });
                         }}
                         className="text-red-600 hover:text-red-900"
+                        title="Delete"
                       >
-                        Delete
+                        <span className="hidden sm:inline">Delete</span>
+                        <span className="sm:hidden">❌</span>
                       </button>
                     </div>
                   </td>

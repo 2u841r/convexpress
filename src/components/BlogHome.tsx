@@ -5,13 +5,28 @@ import { useNavigate } from "react-router-dom";
 
 export function BlogHome() {
   const navigate = useNavigate();
+  const [searchInput, setSearchInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
 
   const posts = useQuery(api.posts.list, {
-    paginationOpts: { numItems: 10, cursor: null },
+    paginationOpts: { numItems: 50, cursor: null },
     search: searchTerm || undefined,
     status: "published",
+    monthYear: selectedMonth || undefined,
   });
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchTerm(searchInput);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      setSearchTerm(searchInput);
+    }
+  };
 
   const categories = useQuery(api.categories.list, {
     paginationOpts: { numItems: 50, cursor: null },
@@ -44,15 +59,24 @@ export function BlogHome() {
         {/* Main Content */}
         <div className="lg:col-span-3">
           {/* Search */}
-          <div className="mb-8">
-            <input
-              type="text"
-              placeholder="Search posts..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
+          <form onSubmit={handleSearch} className="mb-8">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Search posts... (Press Enter to search)"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                type="submit"
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                Search
+              </button>
+            </div>
+          </form>
 
           {/* Posts */}
           <div className="space-y-8">
@@ -73,7 +97,7 @@ export function BlogHome() {
                   </h2>
                   <div className="text-gray-600 mb-4">
                     <time>
-                      {new Date(post._creationTime).toLocaleDateString('en-US', {
+                      {new Date(post.publishedDate || post._creationTime).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
@@ -135,6 +159,44 @@ export function BlogHome() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Archives by Month */}
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Archives</h3>
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">All Posts</option>
+              {(() => {
+                // Generate list of months from posts
+                const monthSet = new Set<string>();
+                posts.page.forEach((post) => {
+                  if (post) {
+                    const postDate = new Date(post.publishedDate || post._creationTime);
+                    const year = postDate.getFullYear();
+                    const month = String(postDate.getMonth() + 1).padStart(2, "0");
+                    monthSet.add(`${year}-${month}`);
+                  }
+                });
+                
+                // Sort months descending (newest first)
+                const sortedMonths = Array.from(monthSet).sort().reverse();
+                
+                return sortedMonths.map((monthYear) => {
+                  const [year, month] = monthYear.split("-");
+                  const date = new Date(parseInt(year), parseInt(month) - 1);
+                  const monthName = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                  return (
+                    <option key={monthYear} value={monthYear}>
+                      {monthName}
+                    </option>
+                  );
+                });
+              })()}
+            </select>
           </div>
         </div>
       </div>

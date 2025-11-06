@@ -63,7 +63,7 @@ export function PostView() {
           
           <div className="flex items-center gap-4 text-gray-600 mb-6">
             <time>
-              {new Date(post._creationTime).toLocaleDateString('en-US', {
+              {new Date(post.publishedDate || post._creationTime).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'

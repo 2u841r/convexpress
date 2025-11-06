@@ -15,6 +15,7 @@ export const list = query({
     tags: v.optional(v.array(v.id("tags"))),
     tags_exclude: v.optional(v.array(v.id("tags"))),
     status: v.optional(v.union(v.literal("draft"), v.literal("published"))),
+    monthYear: v.optional(v.string()), // Format: "YYYY-MM" e.g. "2024-10"
   },
   handler: async (ctx, args) => {
     // Handle search
@@ -90,6 +91,17 @@ export const list = query({
       );
     }
 
+    // Filter by month/year if provided (format: "YYYY-MM")
+    if (args.monthYear) {
+      const [year, month] = args.monthYear.split("-").map(Number);
+      posts = posts.filter(post => {
+        const postDate = post.publishedDate ? new Date(post.publishedDate) : new Date(post._creationTime);
+        const postMonth = postDate.getMonth() + 1; // getMonth() returns 0-11
+        const postYear = postDate.getFullYear();
+        return postMonth === month && postYear === year;
+      });
+    }
+
     return {
       ...result,
       page: posts,
@@ -159,6 +171,7 @@ export const update = mutation({
     status: v.optional(v.union(v.literal("draft"), v.literal("published"))),
     tags: v.optional(v.array(v.id("tags"))),
     categories: v.optional(v.array(v.id("categories"))),
+    publishedDate: v.optional(v.number()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {

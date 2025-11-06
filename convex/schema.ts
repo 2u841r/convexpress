@@ -10,6 +10,7 @@ const applicationTables = {
     status: v.union(v.literal("draft"), v.literal("published")),
     tags: v.array(v.id("tags")),
     categories: v.array(v.id("categories")),
+    publishedDate: v.optional(v.number()),
   })
     .index("by_slug", ["slug"])
     .index("by_status", ["status"])

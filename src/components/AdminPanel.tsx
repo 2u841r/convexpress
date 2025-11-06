@@ -168,6 +168,23 @@ function PostForm({ post, categories, tags, onClose }: {
   const [status, setStatus] = useState<"draft" | "published">(post?.status || "draft");
   const [selectedCategories, setSelectedCategories] = useState<Id<"categories">[]>(post?.categories || []);
   const [selectedTags, setSelectedTags] = useState<Id<"tags">[]>(post?.tags || []);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Date/time picker - convert timestamp to datetime-local format
+  const getDateTimeLocal = (timestamp?: number) => {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+  
+  const [publishedDateTime, setPublishedDateTime] = useState(
+    post?.publishedDate ? getDateTimeLocal(post.publishedDate) : getDateTimeLocal(Date.now())
+  );
 
   const createPost = useMutation(api.posts.create);
   const updatePost = useMutation(api.posts.update);
@@ -175,9 +192,13 @@ function PostForm({ post, categories, tags, onClose }: {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title || !body || !slug) return;
+    if (!title || !body || !slug || isSubmitting) return;
 
+    setIsSubmitting(true);
     try {
+      // Convert datetime-local to timestamp
+      const publishedDate = publishedDateTime ? new Date(publishedDateTime).getTime() : undefined;
+      
       if (post) {
         await updatePost({
           id: post._id,
@@ -187,6 +208,7 @@ function PostForm({ post, categories, tags, onClose }: {
           status,
           categories: selectedCategories,
           tags: selectedTags,
+          publishedDate,
         });
       } else {
         await createPost({
@@ -196,6 +218,7 @@ function PostForm({ post, categories, tags, onClose }: {
           status,
           categories: selectedCategories,
           tags: selectedTags,
+          publishedDate,
         });
       }
       onClose();
@@ -203,6 +226,8 @@ function PostForm({ post, categories, tags, onClose }: {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to save post. Please try again.";
       toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -268,6 +293,21 @@ function PostForm({ post, categories, tags, onClose }: {
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Publish Date & Time
+              </label>
+              <input
+                type="datetime-local"
+                value={publishedDateTime}
+                onChange={(e) => setPublishedDateTime(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Set the date and time when this post should be published (like WordPress)
+              </p>
             </div>
 
             <div>
@@ -343,9 +383,10 @@ function PostForm({ post, categories, tags, onClose }: {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {post ? "Update" : "Create"} Post
+                {isSubmitting ? "Saving..." : post ? "Update" : "Create"} Post
               </button>
             </div>
           </form>
@@ -462,6 +503,7 @@ function CategoryForm({ category, onClose }: {
   const [name, setName] = useState(category?.name || "");
   const [slug, setSlug] = useState(category?.slug || "");
   const [description, setDescription] = useState(category?.description || "");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const createCategory = useMutation(api.categories.create);
   const updateCategory = useMutation(api.categories.update);
@@ -469,8 +511,9 @@ function CategoryForm({ category, onClose }: {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !slug) return;
+    if (!name || !slug || isSubmitting) return;
 
+    setIsSubmitting(true);
     try {
       if (category) {
         await updateCategory({
@@ -491,6 +534,8 @@ function CategoryForm({ category, onClose }: {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to save category. Please try again.";
       toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -565,9 +610,10 @@ function CategoryForm({ category, onClose }: {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {category ? "Update" : "Create"} Category
+                {isSubmitting ? "Saving..." : category ? "Update" : "Create"} Category
               </button>
             </div>
           </form>
@@ -684,6 +730,7 @@ function TagForm({ tag, onClose }: {
   const [name, setName] = useState(tag?.name || "");
   const [slug, setSlug] = useState(tag?.slug || "");
   const [description, setDescription] = useState(tag?.description || "");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const createTag = useMutation(api.tags.create);
   const updateTag = useMutation(api.tags.update);
@@ -691,8 +738,9 @@ function TagForm({ tag, onClose }: {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !slug) return;
+    if (!name || !slug || isSubmitting) return;
 
+    setIsSubmitting(true);
     try {
       if (tag) {
         await updateTag({
@@ -713,6 +761,8 @@ function TagForm({ tag, onClose }: {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to save tag. Please try again.";
       toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -787,9 +837,10 @@ function TagForm({ tag, onClose }: {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {tag ? "Update" : "Create"} Tag
+                {isSubmitting ? "Saving..." : tag ? "Update" : "Create"} Tag
               </button>
             </div>
           </form>

@@ -1,10 +1,9 @@
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export function BlogHome() {
-  const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -94,14 +93,11 @@ export function BlogHome() {
             ) : (
               posts.page.map((post) => post && (
                 <article key={post._id} className="bg-white rounded-lg shadow-sm border p-6">
-                  <h2 
-                    className="text-2xl font-bold text-gray-900 mb-3 cursor-pointer hover:text-blue-600"
-                    onClick={() => {
-                      void navigate(`/post/${post.slug}`);
-                    }}
-                  >
-                    {post.title}
-                  </h2>
+                  <Link to={`/post/${post.slug}`}>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-3 cursor-pointer hover:text-blue-600">
+                      {post.title}
+                    </h2>
+                  </Link>
                   <div className="text-gray-600 mb-4">
                     <time>
                       {new Date(post.publishedDate || post._creationTime).toLocaleDateString('en-US', {
@@ -114,14 +110,12 @@ export function BlogHome() {
                   <div className="text-gray-700 mb-4 line-clamp-3">
                     {post.body.substring(0, 200)}...
                   </div>
-                  <button
-                    onClick={() => {
-                      void navigate(`/post/${post.slug}`);
-                    }}
-                    className="text-blue-600 hover:text-blue-800 font-medium"
+                  <Link
+                    to={`/post/${post.slug}`}
+                    className="text-blue-600 hover:text-blue-800 font-medium inline-block"
                   >
                     Read more →
-                  </button>
+                  </Link>
                 </article>
               ))
             )}
@@ -136,14 +130,12 @@ export function BlogHome() {
             <div className="space-y-2">
               {categories.page.map((category) => (
                 <div key={category._id} className="flex justify-between items-center">
-                  <button
-                    onClick={() => {
-                      void navigate(`/category/${category.slug}`);
-                    }}
+                  <Link
+                    to={`/category/${category.slug}`}
                     className="text-left hover:text-blue-600 text-gray-700"
                   >
                     {category.name}
-                  </button>
+                  </Link>
                   <span className="text-gray-500 text-sm">({category.count})</span>
                 </div>
               ))}
@@ -155,15 +147,13 @@ export function BlogHome() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Tags</h3>
             <div className="flex flex-wrap gap-2">
               {tags.page.map((tag) => (
-                <button
+                <Link
                   key={tag._id}
-                  onClick={() => {
-                    void navigate(`/tag/${tag.slug}`);
-                  }}
+                  to={`/tag/${tag.slug}`}
                   className="px-3 py-1 rounded-full text-sm border bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
                 >
                   {tag.name} ({tag.count})
-                </button>
+                </Link>
               ))}
             </div>
           </div>

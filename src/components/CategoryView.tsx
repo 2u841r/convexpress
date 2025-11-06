@@ -1,10 +1,9 @@
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 
 export function CategoryView() {
   const { slug } = useParams<{ slug: string }>();
-  const navigate = useNavigate();
 
   const category = useQuery(
     api.categories.getBySlug,
@@ -47,14 +46,12 @@ export function CategoryView() {
           <p className="text-gray-600 mb-8">
             The category you're looking for doesn't exist.
           </p>
-          <button
-            onClick={() => {
-              void navigate("/");
-            }}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          <Link
+            to="/"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-block"
           >
             ← Back to Blog
-          </button>
+          </Link>
         </div>
       </div>
     );
@@ -62,14 +59,12 @@ export function CategoryView() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <button
-        onClick={() => {
-          void navigate("/");
-        }}
+      <Link
+        to="/"
         className="mb-8 flex items-center text-blue-600 hover:text-blue-800"
       >
         ← Back to Blog
-      </button>
+      </Link>
 
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">{category.name}</h1>
@@ -94,14 +89,11 @@ export function CategoryView() {
                   key={post._id}
                   className="bg-white rounded-lg shadow-sm border p-6"
                 >
-                  <h2
-                    className="text-2xl font-bold text-gray-900 mb-3 cursor-pointer hover:text-blue-600"
-                    onClick={() => {
-                      void navigate(`/post/${post.slug}`);
-                    }}
-                  >
-                    {post.title}
-                  </h2>
+                  <Link to={`/post/${post.slug}`}>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-3 cursor-pointer hover:text-blue-600">
+                      {post.title}
+                    </h2>
+                  </Link>
                   <div className="text-gray-600 mb-4">
                     <time>
                       {new Date(post._creationTime).toLocaleDateString("en-US", {
@@ -114,14 +106,12 @@ export function CategoryView() {
                   <div className="text-gray-700 mb-4 line-clamp-3">
                     {post.body.substring(0, 200)}...
                   </div>
-                  <button
-                    onClick={() => {
-                      void navigate(`/post/${post.slug}`);
-                    }}
-                    className="text-blue-600 hover:text-blue-800 font-medium"
+                  <Link
+                    to={`/post/${post.slug}`}
+                    className="text-blue-600 hover:text-blue-800 font-medium inline-block"
                   >
                     Read more →
-                  </button>
+                  </Link>
                 </article>
               )
           )

@@ -2,6 +2,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useState } from "react";
 import { Id } from "../../convex/_generated/dataModel";
+import { toast } from "sonner";
 
 export function AdminPanel() {
   const [activeTab, setActiveTab] = useState<"posts" | "categories" | "tags">("posts");
@@ -138,7 +139,9 @@ function PostsManager() {
                     Edit
                   </button>
                   <button
-                    onClick={() => deletePost({ id: post._id })}
+                    onClick={() => {
+                      void deletePost({ id: post._id });
+                    }}
                     className="text-red-600 hover:text-red-900"
                   >
                     Delete
@@ -196,8 +199,10 @@ function PostForm({ post, categories, tags, onClose }: {
         });
       }
       onClose();
+      toast.success(post ? "Post updated successfully!" : "Post created successfully!");
     } catch (error) {
-      console.error("Error saving post:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to save post. Please try again.";
+      toast.error(errorMessage);
     }
   };
 
@@ -217,7 +222,9 @@ function PostForm({ post, categories, tags, onClose }: {
             {post ? "Edit Post" : "Add New Post"}
           </h3>
           
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={(e) => {
+            void handleSubmit(e);
+          }} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Title
@@ -431,7 +438,9 @@ function CategoriesManager() {
                     Edit
                   </button>
                   <button
-                    onClick={() => deleteCategory({ id: category._id })}
+                    onClick={() => {
+                      void deleteCategory({ id: category._id });
+                    }}
                     className="text-red-600 hover:text-red-900"
                   >
                     Delete
@@ -478,8 +487,10 @@ function CategoryForm({ category, onClose }: {
         });
       }
       onClose();
+      toast.success(category ? "Category updated successfully!" : "Category created successfully!");
     } catch (error) {
-      console.error("Error saving category:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to save category. Please try again.";
+      toast.error(errorMessage);
     }
   };
 
@@ -498,7 +509,9 @@ function CategoryForm({ category, onClose }: {
             {category ? "Edit Category" : "Add New Category"}
           </h3>
           
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={(e) => {
+            void handleSubmit(e);
+          }} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Name
@@ -647,7 +660,9 @@ function TagsManager() {
                     Edit
                   </button>
                   <button
-                    onClick={() => deleteTag({ id: tag._id })}
+                    onClick={() => {
+                      void deleteTag({ id: tag._id });
+                    }}
                     className="text-red-600 hover:text-red-900"
                   >
                     Delete
@@ -694,8 +709,10 @@ function TagForm({ tag, onClose }: {
         });
       }
       onClose();
+      toast.success(tag ? "Tag updated successfully!" : "Tag created successfully!");
     } catch (error) {
-      console.error("Error saving tag:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to save tag. Please try again.";
+      toast.error(errorMessage);
     }
   };
 
@@ -714,7 +731,9 @@ function TagForm({ tag, onClose }: {
             {tag ? "Edit Tag" : "Add New Tag"}
           </h3>
           
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={(e) => {
+            void handleSubmit(e);
+          }} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Name

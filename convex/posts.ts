@@ -134,6 +134,7 @@ export const create = mutation({
     tags: v.array(v.id("tags")),
     categories: v.array(v.id("categories")),
   },
+  returns: v.id("posts"),
   handler: async (ctx, args) => {
     return await ctx.db.insert("posts", args);
   },
@@ -149,15 +150,19 @@ export const update = mutation({
     tags: v.optional(v.array(v.id("tags"))),
     categories: v.optional(v.array(v.id("categories"))),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
-    return await ctx.db.patch(id, updates);
+    await ctx.db.patch(id, updates);
+    return null;
   },
 });
 
 export const remove = mutation({
   args: { id: v.id("posts") },
+  returns: v.null(),
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
+    return null;
   },
 });

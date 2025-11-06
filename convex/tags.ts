@@ -94,6 +94,7 @@ export const create = mutation({
     slug: v.string(),
     description: v.optional(v.string()),
   },
+  returns: v.id("tags"),
   handler: async (ctx, args) => {
     return await ctx.db.insert("tags", args);
   },
@@ -106,15 +107,19 @@ export const update = mutation({
     slug: v.optional(v.string()),
     description: v.optional(v.string()),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
-    return await ctx.db.patch(id, updates);
+    await ctx.db.patch(id, updates);
+    return null;
   },
 });
 
 export const remove = mutation({
   args: { id: v.id("tags") },
+  returns: v.null(),
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
+    return null;
   },
 });

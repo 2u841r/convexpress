@@ -1,13 +1,14 @@
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { useParams, useNavigate } from "react-router-dom";
 
-interface PostViewProps {
-  slug: string;
-  onBack: () => void;
-}
-
-export function PostView({ slug, onBack }: PostViewProps) {
-  const post = useQuery(api.posts.getBySlug, { slug });
+export function PostView() {
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const post = useQuery(
+    api.posts.getBySlug,
+    slug ? { slug } : "skip"
+  );
 
   if (post === undefined) {
     return (
@@ -33,7 +34,9 @@ export function PostView({ slug, onBack }: PostViewProps) {
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Post Not Found</h1>
           <p className="text-gray-600 mb-8">The post you're looking for doesn't exist.</p>
           <button
-            onClick={onBack}
+            onClick={() => {
+              void navigate("/");
+            }}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             ← Back to Blog
@@ -46,7 +49,9 @@ export function PostView({ slug, onBack }: PostViewProps) {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <button
-        onClick={onBack}
+        onClick={() => {
+          void navigate("/");
+        }}
         className="mb-8 flex items-center text-blue-600 hover:text-blue-800"
       >
         ← Back to Blog
@@ -75,12 +80,15 @@ export function PostView({ slug, onBack }: PostViewProps) {
               <span className="text-gray-700 font-medium">Categories: </span>
               <div className="inline-flex flex-wrap gap-2">
                 {post.categories.map((category) => category && (
-                  <span
+                  <button
                     key={category._id}
-                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
+                    onClick={() => {
+                      void navigate(`/category/${category.slug}`);
+                    }}
+                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200 cursor-pointer"
                   >
                     {category.name}
-                  </span>
+                  </button>
                 ))}
               </div>
             </div>
@@ -92,12 +100,15 @@ export function PostView({ slug, onBack }: PostViewProps) {
               <span className="text-gray-700 font-medium">Tags: </span>
               <div className="inline-flex flex-wrap gap-2">
                 {post.tags.map((tag) => tag && (
-                  <span
+                  <button
                     key={tag._id}
-                    className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm"
+                    onClick={() => {
+                      void navigate(`/tag/${tag.slug}`);
+                    }}
+                    className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 cursor-pointer"
                   >
                     #{tag.name}
-                  </span>
+                  </button>
                 ))}
               </div>
             </div>

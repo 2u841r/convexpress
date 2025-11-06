@@ -1,15 +1,11 @@
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-interface BlogHomeProps {
-  onPostClick: (slug: string) => void;
-}
-
-export function BlogHome({ onPostClick }: BlogHomeProps) {
+export function BlogHome() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedTag, setSelectedTag] = useState<string>("");
 
   const posts = useQuery(api.posts.list, {
     paginationOpts: { numItems: 10, cursor: null },
@@ -69,7 +65,9 @@ export function BlogHome({ onPostClick }: BlogHomeProps) {
                 <article key={post._id} className="bg-white rounded-lg shadow-sm border p-6">
                   <h2 
                     className="text-2xl font-bold text-gray-900 mb-3 cursor-pointer hover:text-blue-600"
-                    onClick={() => onPostClick(post.slug)}
+                    onClick={() => {
+                      void navigate(`/post/${post.slug}`);
+                    }}
                   >
                     {post.title}
                   </h2>
@@ -86,7 +84,9 @@ export function BlogHome({ onPostClick }: BlogHomeProps) {
                     {post.body.substring(0, 200)}...
                   </div>
                   <button
-                    onClick={() => onPostClick(post.slug)}
+                    onClick={() => {
+                      void navigate(`/post/${post.slug}`);
+                    }}
                     className="text-blue-600 hover:text-blue-800 font-medium"
                   >
                     Read more →
@@ -106,10 +106,10 @@ export function BlogHome({ onPostClick }: BlogHomeProps) {
               {categories.page.map((category) => (
                 <div key={category._id} className="flex justify-between items-center">
                   <button
-                    onClick={() => setSelectedCategory(category.slug)}
-                    className={`text-left hover:text-blue-600 ${
-                      selectedCategory === category.slug ? "text-blue-600 font-medium" : "text-gray-700"
-                    }`}
+                    onClick={() => {
+                      void navigate(`/category/${category.slug}`);
+                    }}
+                    className="text-left hover:text-blue-600 text-gray-700"
                   >
                     {category.name}
                   </button>
@@ -126,12 +126,10 @@ export function BlogHome({ onPostClick }: BlogHomeProps) {
               {tags.page.map((tag) => (
                 <button
                   key={tag._id}
-                  onClick={() => setSelectedTag(tag.slug)}
-                  className={`px-3 py-1 rounded-full text-sm border ${
-                    selectedTag === tag.slug
-                      ? "bg-blue-100 text-blue-700 border-blue-300"
-                      : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
-                  }`}
+                  onClick={() => {
+                    void navigate(`/tag/${tag.slug}`);
+                  }}
+                  className="px-3 py-1 rounded-full text-sm border bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
                 >
                   {tag.name} ({tag.count})
                 </button>

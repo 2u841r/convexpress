@@ -9,11 +9,18 @@ export function BlogHome() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
 
+  // Query for filtered posts (for display)
   const posts = useQuery(api.posts.list, {
     paginationOpts: { numItems: 50, cursor: null },
     search: searchTerm || undefined,
     status: "published",
     monthYear: selectedMonth || undefined,
+  });
+
+  // Query for ALL posts (for generating month list)
+  const allPosts = useQuery(api.posts.list, {
+    paginationOpts: { numItems: 1000, cursor: null },
+    status: "published",
   });
 
   const handleSearch = (e: React.FormEvent) => {
@@ -38,7 +45,7 @@ export function BlogHome() {
     hide_empty: true,
   });
 
-  if (!posts || !categories || !tags) {
+  if (!posts || !allPosts || !categories || !tags) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="animate-pulse">
@@ -171,9 +178,9 @@ export function BlogHome() {
             >
               <option value="">All Posts</option>
               {(() => {
-                // Generate list of months from posts
+                // Generate list of months from ALL posts (not filtered)
                 const monthSet = new Set<string>();
-                posts.page.forEach((post) => {
+                allPosts.page.forEach((post) => {
                   if (post) {
                     const postDate = new Date(post.publishedDate || post._creationTime);
                     const year = postDate.getFullYear();

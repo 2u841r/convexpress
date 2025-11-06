@@ -49,14 +49,19 @@ export const list = query({
     }
 
     // Apply status filter and order
-    const status = args.status || "published";
     const order = args.order || "desc";
     
-    const result = await ctx.db
-      .query("posts")
-      .withIndex("by_status", (q) => q.eq("status", status))
-      .order(order)
-      .paginate(args.paginationOpts);
+    // Only filter by status if explicitly provided
+    const result = args.status
+      ? await ctx.db
+          .query("posts")
+          .withIndex("by_status", (q) => q.eq("status", args.status!))
+          .order(order)
+          .paginate(args.paginationOpts)
+      : await ctx.db
+          .query("posts")
+          .order(order)
+          .paginate(args.paginationOpts);
 
 
     

@@ -66,14 +66,14 @@ function PostsManager() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 className="text-xl font-semibold">Manage Posts</h2>
         <button
           onClick={() => {
             setEditingPost(null);
             setShowForm(true);
           }}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-full sm:w-auto"
         >
           Add New Post
         </button>
@@ -92,65 +92,69 @@ function PostsManager() {
       )}
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Title
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Date
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {posts.page.map((post) => post && (
-              <tr key={post._id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{post.title}</div>
-                  <div className="text-sm text-gray-500">{post.slug}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    post.status === "published" 
-                      ? "bg-green-100 text-green-800" 
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}>
-                    {post.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(post._creationTime).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button
-                    onClick={() => {
-                      setEditingPost(post);
-                      setShowForm(true);
-                    }}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                      void deletePost({ id: post._id });
-                    }}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    Delete
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Title
+                </th>
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky right-0 bg-gray-50">
+                  Actions
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {posts.page.map((post) => post && (
+                <tr key={post._id}>
+                  <td className="px-3 sm:px-6 py-4">
+                    <div className="text-sm font-medium text-gray-900">{post.title}</div>
+                    <div className="text-sm text-gray-500">{post.slug}</div>
+                  </td>
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      post.status === "published" 
+                        ? "bg-green-100 text-green-800" 
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}>
+                      {post.status}
+                    </span>
+                  </td>
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(post._creationTime).toLocaleDateString()}
+                  </td>
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium sticky right-0 bg-white">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setEditingPost(post);
+                          setShowForm(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => {
+                          void deletePost({ id: post._id });
+                        }}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -412,14 +416,14 @@ function CategoriesManager() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 className="text-xl font-semibold">Manage Categories</h2>
         <button
           onClick={() => {
             setEditingCategory(null);
             setShowForm(true);
           }}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-full sm:w-auto"
         >
           Add New Category
         </button>
@@ -436,61 +440,65 @@ function CategoriesManager() {
       )}
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Name
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Slug
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Posts
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {categories.page.map((category) => (
-              <tr key={category._id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{category.name}</div>
-                  {category.description && (
-                    <div className="text-sm text-gray-500">{category.description}</div>
-                  )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {category.slug}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {category.count || 0}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button
-                    onClick={() => {
-                      setEditingCategory(category);
-                      setShowForm(true);
-                    }}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                      void deleteCategory({ id: category._id });
-                    }}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    Delete
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Slug
+                </th>
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Posts
+                </th>
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky right-0 bg-gray-50">
+                  Actions
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {categories.page.map((category) => (
+                <tr key={category._id}>
+                  <td className="px-3 sm:px-6 py-4">
+                    <div className="text-sm font-medium text-gray-900">{category.name}</div>
+                    {category.description && (
+                      <div className="text-sm text-gray-500">{category.description}</div>
+                    )}
+                  </td>
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {category.slug}
+                  </td>
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {category.count || 0}
+                  </td>
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium sticky right-0 bg-white">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setEditingCategory(category);
+                          setShowForm(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => {
+                          void deleteCategory({ id: category._id });
+                        }}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -639,14 +647,14 @@ function TagsManager() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 className="text-xl font-semibold">Manage Tags</h2>
         <button
           onClick={() => {
             setEditingTag(null);
             setShowForm(true);
           }}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-full sm:w-auto"
         >
           Add New Tag
         </button>
@@ -663,61 +671,65 @@ function TagsManager() {
       )}
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Name
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Slug
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Posts
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {tags.page.map((tag) => (
-              <tr key={tag._id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{tag.name}</div>
-                  {tag.description && (
-                    <div className="text-sm text-gray-500">{tag.description}</div>
-                  )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {tag.slug}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {tag.count || 0}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button
-                    onClick={() => {
-                      setEditingTag(tag);
-                      setShowForm(true);
-                    }}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                      void deleteTag({ id: tag._id });
-                    }}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    Delete
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Slug
+                </th>
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Posts
+                </th>
+                <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky right-0 bg-gray-50">
+                  Actions
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {tags.page.map((tag) => (
+                <tr key={tag._id}>
+                  <td className="px-3 sm:px-6 py-4">
+                    <div className="text-sm font-medium text-gray-900">{tag.name}</div>
+                    {tag.description && (
+                      <div className="text-sm text-gray-500">{tag.description}</div>
+                    )}
+                  </td>
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {tag.slug}
+                  </td>
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {tag.count || 0}
+                  </td>
+                  <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium sticky right-0 bg-white">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setEditingTag(tag);
+                          setShowForm(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => {
+                          void deleteTag({ id: tag._id });
+                        }}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

@@ -17,7 +17,7 @@ function Header() {
       <div className="max-w-6xl mx-auto px-4 h-16 flex justify-between items-center">
         <div className="flex items-center gap-6">
           <Link to="/" className="text-2xl font-bold text-gray-900 cursor-pointer">
-            My WordPress Blog
+           ConvexPress
           </Link>
           <nav className="flex gap-4">
             <Link

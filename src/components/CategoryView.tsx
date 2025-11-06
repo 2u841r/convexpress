@@ -1,4 +1,4 @@
-import { useQuery } from "convex/react";
+import { useQuery, usePaginatedQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useParams, Link } from "react-router-dom";
 
@@ -10,15 +10,19 @@ export function CategoryView() {
     slug ? { slug } : "skip"
   );
 
-  const posts = useQuery(
+  const {
+    results: posts,
+    status: paginationStatus,
+    loadMore,
+  } = usePaginatedQuery(
     api.posts.list,
     category
       ? {
-          paginationOpts: { numItems: 50, cursor: null },
           categories: [category._id],
           status: "published",
         }
-      : "skip"
+      : "skip",
+    { initialNumItems: 10 }
   );
 
   if (category === undefined || posts === undefined) {
@@ -77,44 +81,68 @@ export function CategoryView() {
       </div>
 
       <div className="space-y-8">
-        {posts.page.length === 0 ? (
+        {posts.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">No posts found in this category.</p>
           </div>
         ) : (
-          posts.page.map(
-            (post) =>
-              post && (
-                <article
-                  key={post._id}
-                  className="bg-white rounded-lg shadow-sm border p-6"
-                >
-                  <Link to={`/post/${post.slug}`}>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-3 cursor-pointer hover:text-blue-600">
-                      {post.title}
-                    </h2>
-                  </Link>
-                  <div className="text-gray-600 mb-4">
-                    <time>
-                      {new Date(post._creationTime).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </time>
-                  </div>
-                  <div className="text-gray-700 mb-4 line-clamp-3">
-                    {post.body.substring(0, 200)}...
-                  </div>
-                  <Link
-                    to={`/post/${post.slug}`}
-                    className="text-blue-600 hover:text-blue-800 font-medium inline-block"
+          <>
+            {posts.map(
+              (post) =>
+                post && (
+                  <article
+                    key={post._id}
+                    className="bg-white rounded-lg shadow-sm border p-6"
                   >
-                    Read more →
-                  </Link>
-                </article>
-              )
-          )
+                    <Link to={`/post/${post.slug}`}>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-3 cursor-pointer hover:text-blue-600">
+                        {post.title}
+                      </h2>
+                    </Link>
+                    <div className="text-gray-600 mb-4">
+                      <time>
+                        {new Date(post._creationTime).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </time>
+                    </div>
+                    <div className="text-gray-700 mb-4 line-clamp-3">
+                      {post.body.substring(0, 200)}...
+                    </div>
+                    <Link
+                      to={`/post/${post.slug}`}
+                      className="text-blue-600 hover:text-blue-800 font-medium inline-block"
+                    >
+                      Read more →
+                    </Link>
+                  </article>
+                )
+            )}
+            
+            {/* Load More Button */}
+            {paginationStatus === "CanLoadMore" && (
+              <div className="text-center pt-4">
+                <button
+                  onClick={() => loadMore(10)}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Load More Posts
+                </button>
+              </div>
+            )}
+            {paginationStatus === "LoadingMore" && (
+              <div className="text-center pt-4">
+                <p className="text-gray-500">Loading more posts...</p>
+              </div>
+            )}
+            {paginationStatus === "Exhausted" && posts.length > 0 && (
+              <div className="text-center pt-4">
+                <p className="text-gray-500">No more posts to load.</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useQuery } from "convex/react";
+import { useQuery, usePaginatedQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -8,15 +8,22 @@ export function BlogHome() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
 
-  // Query for filtered posts (for display)
-  const posts = useQuery(api.posts.list, {
-    paginationOpts: { numItems: 50, cursor: null },
-    search: searchTerm || undefined,
-    status: "published",
-    monthYear: selectedMonth || undefined,
-  });
+  // Use paginated query for posts (10 per page)
+  const {
+    results: posts,
+    status: paginationStatus,
+    loadMore,
+  } = usePaginatedQuery(
+    api.posts.list,
+    {
+      search: searchTerm || undefined,
+      status: "published",
+      monthYear: selectedMonth || undefined,
+    },
+    { initialNumItems: 10 }
+  );
 
-  // Query for ALL posts (for generating month list)
+  // Query for ALL posts (for generating month list) - keep using useQuery for this
   const allPosts = useQuery(api.posts.list, {
     paginationOpts: { numItems: 1000, cursor: null },
     status: "published",
@@ -44,7 +51,7 @@ export function BlogHome() {
     hide_empty: true,
   });
 
-  if (!posts || !allPosts || !categories || !tags) {
+  if (posts === undefined || !allPosts || !categories || !tags) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="animate-pulse">
@@ -86,38 +93,62 @@ export function BlogHome() {
 
           {/* Posts */}
           <div className="space-y-8">
-            {posts.page.length === 0 ? (
+            {posts.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500 text-lg">No posts found.</p>
               </div>
             ) : (
-              posts.page.map((post) => post && (
-                <article key={post._id} className="bg-white rounded-lg shadow-sm border p-6">
-                  <Link to={`/post/${post.slug}`}>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-3 cursor-pointer hover:text-blue-600">
-                      {post.title}
-                    </h2>
-                  </Link>
-                  <div className="text-gray-600 mb-4">
-                    <time>
-                      {new Date(post.publishedDate || post._creationTime).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </time>
+              <>
+                {posts.map((post) => post && (
+                  <article key={post._id} className="bg-white rounded-lg shadow-sm border p-6">
+                    <Link to={`/post/${post.slug}`}>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-3 cursor-pointer hover:text-blue-600">
+                        {post.title}
+                      </h2>
+                    </Link>
+                    <div className="text-gray-600 mb-4">
+                      <time>
+                        {new Date(post.publishedDate || post._creationTime).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </time>
+                    </div>
+                    <div className="text-gray-700 mb-4 line-clamp-3">
+                      {post.body.substring(0, 200)}...
+                    </div>
+                    <Link
+                      to={`/post/${post.slug}`}
+                      className="text-blue-600 hover:text-blue-800 font-medium inline-block"
+                    >
+                      Read more →
+                    </Link>
+                  </article>
+                ))}
+                
+                {/* Load More Button */}
+                {paginationStatus === "CanLoadMore" && (
+                  <div className="text-center pt-4">
+                    <button
+                      onClick={() => loadMore(10)}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      Load More Posts
+                    </button>
                   </div>
-                  <div className="text-gray-700 mb-4 line-clamp-3">
-                    {post.body.substring(0, 200)}...
+                )}
+                {paginationStatus === "LoadingMore" && (
+                  <div className="text-center pt-4">
+                    <p className="text-gray-500">Loading more posts...</p>
                   </div>
-                  <Link
-                    to={`/post/${post.slug}`}
-                    className="text-blue-600 hover:text-blue-800 font-medium inline-block"
-                  >
-                    Read more →
-                  </Link>
-                </article>
-              ))
+                )}
+                {paginationStatus === "Exhausted" && posts.length > 0 && (
+                  <div className="text-center pt-4">
+                    <p className="text-gray-500">No more posts to load.</p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

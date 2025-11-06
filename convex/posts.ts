@@ -18,7 +18,8 @@ export const list = query({
     monthYear: v.optional(v.string()), // Format: "YYYY-MM" e.g. "2024-10"
   },
   handler: async (ctx, args) => {
-    // Handle search
+    // Handle search - Note: search doesn't support proper pagination, so we return all results
+    // For proper pagination with search, you'd need to implement a different approach
     if (args.search) {
       const searchResults = await ctx.db
         .query("posts")
@@ -33,10 +34,17 @@ export const list = query({
         searchIds.map(id => ctx.db.get(id))
       );
       
+      const allResults = filteredPosts.filter(Boolean);
+      const pageSize = args.paginationOpts.numItems || 10;
+      const cursor = args.paginationOpts.cursor ? parseInt(args.paginationOpts.cursor, 10) : 0;
+      const startIndex = cursor;
+      const page = allResults.slice(startIndex, startIndex + pageSize);
+      const isDone = startIndex + pageSize >= allResults.length;
+      
       return {
-        page: filteredPosts.filter(Boolean).slice(0, args.paginationOpts.numItems || 10),
-        isDone: true,
-        continueCursor: null,
+        page,
+        isDone,
+        continueCursor: isDone ? null : String(startIndex + pageSize),
       };
     }
 
@@ -145,6 +153,7 @@ export const create = mutation({
     status: v.union(v.literal("draft"), v.literal("published")),
     tags: v.array(v.id("tags")),
     categories: v.array(v.id("categories")),
+    publishedDate: v.optional(v.number()),
   },
   returns: v.id("posts"),
   handler: async (ctx, args) => {
@@ -200,5 +209,138 @@ export const remove = mutation({
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
     return null;
+  },
+});
+
+// Random blog post generator for testing
+const randomTitles = [
+  "The Future of Web Development",
+  "Understanding React Hooks",
+  "Building Scalable Applications",
+  "Introduction to TypeScript",
+  "Modern CSS Techniques",
+  "Database Design Best Practices",
+  "API Development Guide",
+  "Cloud Computing Explained",
+  "Machine Learning Basics",
+  "Cybersecurity Fundamentals",
+  "Mobile App Development",
+  "DevOps Best Practices",
+  "GraphQL vs REST",
+  "Microservices Architecture",
+  "Containerization with Docker",
+  "CI/CD Pipeline Setup",
+  "Performance Optimization Tips",
+  "User Experience Design",
+  "Agile Development Methodologies",
+  "Open Source Contributions",
+  "Testing Strategies",
+  "Code Review Best Practices",
+  "Version Control with Git",
+  "Serverless Architecture",
+  "Blockchain Technology Overview",
+  "Data Structures and Algorithms",
+  "System Design Principles",
+  "Frontend Frameworks Comparison",
+  "Backend Development Patterns",
+  "Full Stack Development Guide",
+];
+
+const randomBodies = [
+  "In this comprehensive guide, we'll explore the latest trends and technologies shaping the future of software development. From emerging frameworks to best practices, we'll cover everything you need to know to stay ahead in the industry.",
+  "This article delves deep into the concepts and practices that every developer should understand. We'll break down complex topics into digestible pieces, making it easy for beginners and experienced developers alike.",
+  "Learn how to build robust, scalable applications that can handle millions of users. We'll discuss architecture patterns, performance optimization, and real-world examples from successful projects.",
+  "Discover the tools and techniques used by top companies to deliver high-quality software. From planning to deployment, we'll walk through the entire development lifecycle.",
+  "This tutorial provides step-by-step instructions for implementing modern solutions to common development challenges. Follow along and build your skills with hands-on examples.",
+  "Explore the fundamental principles that guide effective software development. We'll examine case studies and learn from industry experts about what works and what doesn't.",
+  "Get practical tips and tricks that you can apply immediately to your projects. These insights come from years of experience working on production systems.",
+  "Understand the theory behind the practice. We'll explain why certain approaches work better than others and how to make informed decisions in your development work.",
+  "Join us on a journey through the evolution of technology. From historical context to future predictions, we'll cover the full spectrum of technological advancement.",
+  "Master the skills that separate good developers from great ones. We'll focus on both technical abilities and soft skills that contribute to professional success.",
+];
+
+function generateSlug(title: string, index: number): string {
+  const baseSlug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+  return `${baseSlug}-${Date.now()}-${index}`;
+}
+
+function getRandomElement<T>(array: T[]): T {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
+function getRandomElements<T>(array: T[], count: number): T[] {
+  const shuffled = [...array].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, Math.min(count, array.length));
+}
+
+function getRandomDate(start: Date, end: Date): number {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime())).getTime();
+}
+
+export const generateRandomPosts = mutation({
+  args: {
+    count: v.number(),
+  },
+  returns: v.object({
+    created: v.number(),
+  }),
+  handler: async (ctx, args) => {
+    if (args.count <= 0 || args.count > 1000) {
+      throw new Error("Count must be between 1 and 1000");
+    }
+
+    // Get all existing categories and tags
+    const allCategories = await ctx.db.query("categories").collect();
+    const allTags = await ctx.db.query("tags").collect();
+
+    if (allCategories.length === 0 || allTags.length === 0) {
+      throw new Error("Please create at least one category and one tag before generating random posts.");
+    }
+
+    const statuses: ("draft" | "published")[] = ["draft", "published"];
+    const now = Date.now();
+    const oneYearAgo = now - 365 * 24 * 60 * 60 * 1000;
+    const oneYearFromNow = now + 365 * 24 * 60 * 60 * 1000;
+
+    let created = 0;
+
+    for (let i = 0; i < args.count; i++) {
+      const title = `${getRandomElement(randomTitles)} ${i + 1}`;
+      const body = getRandomElement(randomBodies);
+      const slug = generateSlug(title, i);
+      const status = getRandomElement(statuses);
+      
+      // Randomly assign 0-3 categories and 0-5 tags
+      const numCategories = Math.floor(Math.random() * Math.min(4, allCategories.length));
+      const numTags = Math.floor(Math.random() * Math.min(6, allTags.length));
+      const categories = getRandomElements(allCategories, numCategories).map(c => c._id);
+      const tags = getRandomElements(allTags, numTags).map(t => t._id);
+
+      // Random published date (some in past, some in future)
+      const publishedDate = status === "published" 
+        ? getRandomDate(new Date(oneYearAgo), new Date(oneYearFromNow))
+        : undefined;
+
+      try {
+        await ctx.db.insert("posts", {
+          title,
+          body,
+          slug,
+          status,
+          categories,
+          tags,
+          publishedDate,
+        });
+        created++;
+      } catch (error) {
+        // Skip if slug already exists (shouldn't happen with timestamp, but just in case)
+        console.error(`Failed to create post ${i + 1}:`, error);
+      }
+    }
+
+    return { created };
   },
 });

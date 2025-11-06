@@ -45,6 +45,7 @@ export function AdminPanel() {
 function PostsManager() {
   const [showForm, setShowForm] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
+  const [postToDelete, setPostToDelete] = useState<any>(null);
   
   const posts = useQuery(api.posts.list, {
     paginationOpts: { numItems: 50, cursor: null },
@@ -91,6 +92,19 @@ function PostsManager() {
         />
       )}
 
+      {postToDelete && (
+        <DeleteConfirmationDialog
+          title="Delete Post"
+          message={`Are you sure you want to delete "${postToDelete.title}"? This action cannot be undone.`}
+          onConfirm={async () => {
+            await deletePost({ id: postToDelete._id });
+            setPostToDelete(null);
+            toast.success("Post deleted successfully!");
+          }}
+          onCancel={() => setPostToDelete(null)}
+        />
+      )}
+
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -134,7 +148,7 @@ function PostsManager() {
                       </button>
                       <button
                         onClick={() => {
-                          void deletePost({ id: post._id });
+                          setPostToDelete(post);
                         }}
                         className="text-red-600 hover:text-red-900"
                         title="Delete"
@@ -397,6 +411,7 @@ function PostForm({ post, categories, tags, onClose }: {
 function CategoriesManager() {
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<any>(null);
   
   const categories = useQuery(api.categories.list, {
     paginationOpts: { numItems: 50, cursor: null },
@@ -430,6 +445,19 @@ function CategoriesManager() {
             setShowForm(false);
             setEditingCategory(null);
           }}
+        />
+      )}
+
+      {categoryToDelete && (
+        <DeleteConfirmationDialog
+          title="Delete Category"
+          message={`Are you sure you want to delete "${categoryToDelete.name}"? This action cannot be undone.`}
+          onConfirm={async () => {
+            await deleteCategory({ id: categoryToDelete._id });
+            setCategoryToDelete(null);
+            toast.success("Category deleted successfully!");
+          }}
+          onCancel={() => setCategoryToDelete(null)}
         />
       )}
 
@@ -480,7 +508,7 @@ function CategoriesManager() {
                       </button>
                       <button
                         onClick={() => {
-                          void deleteCategory({ id: category._id });
+                          setCategoryToDelete(category);
                         }}
                         className="text-red-600 hover:text-red-900"
                       >
@@ -628,6 +656,7 @@ function CategoryForm({ category, onClose }: {
 function TagsManager() {
   const [showForm, setShowForm] = useState(false);
   const [editingTag, setEditingTag] = useState<any>(null);
+  const [tagToDelete, setTagToDelete] = useState<any>(null);
   
   const tags = useQuery(api.tags.list, {
     paginationOpts: { numItems: 50, cursor: null },
@@ -661,6 +690,19 @@ function TagsManager() {
             setShowForm(false);
             setEditingTag(null);
           }}
+        />
+      )}
+
+      {tagToDelete && (
+        <DeleteConfirmationDialog
+          title="Delete Tag"
+          message={`Are you sure you want to delete "${tagToDelete.name}"? This action cannot be undone.`}
+          onConfirm={async () => {
+            await deleteTag({ id: tagToDelete._id });
+            setTagToDelete(null);
+            toast.success("Tag deleted successfully!");
+          }}
+          onCancel={() => setTagToDelete(null)}
         />
       )}
 
@@ -711,7 +753,7 @@ function TagsManager() {
                       </button>
                       <button
                         onClick={() => {
-                          void deleteTag({ id: tag._id });
+                          setTagToDelete(tag);
                         }}
                         className="text-red-600 hover:text-red-900"
                       >
@@ -850,6 +892,60 @@ function TagForm({ tag, onClose }: {
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeleteConfirmationDialog({
+  title,
+  message,
+  onConfirm,
+  onCancel,
+}: {
+  title: string;
+  message: string;
+  onConfirm: () => void | Promise<void>;
+  onCancel: () => void;
+}) {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleConfirm = async () => {
+    setIsDeleting(true);
+    try {
+      await onConfirm();
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg max-w-md w-full">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
+          <p className="text-gray-600 mb-6">{message}</p>
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={isDeleting}
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void handleConfirm();
+              }}
+              disabled={isDeleting}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

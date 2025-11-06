@@ -13,7 +13,7 @@ export const list = query({
   },
   handler: async (ctx, args) => {
     const order = args.order || "asc";
-    let categories = await ctx.db.query("categories").order(order).paginate(args.paginationOpts);
+    const categories = await ctx.db.query("categories").order(order).paginate(args.paginationOpts);
 
     let categoriesWithCount = await Promise.all(
       categories.page.map(async (category) => {
@@ -66,10 +66,12 @@ export const list = query({
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
+    // Use first() instead of unique() to handle duplicate slugs gracefully
     const category = await ctx.db
       .query("categories")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
-      .unique();
+      .order("desc") // Get the most recent one if duplicates exist
+      .first();
     
     if (!category) return null;
 
@@ -96,6 +98,16 @@ export const create = mutation({
   },
   returns: v.id("categories"),
   handler: async (ctx, args) => {
+    // Check if slug already exists
+    const existing = await ctx.db
+      .query("categories")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+    
+    if (existing) {
+      throw new Error(`A category with the slug "${args.slug}" already exists. Please use a different slug.`);
+    }
+    
     return await ctx.db.insert("categories", args);
   },
 });
@@ -110,6 +122,19 @@ export const update = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
+    
+    // Check if slug is being updated and if it already exists (excluding current category)
+    if (updates.slug) {
+      const existing = await ctx.db
+        .query("categories")
+        .withIndex("by_slug", (q) => q.eq("slug", updates.slug!))
+        .first();
+      
+      if (existing && existing._id !== id) {
+        throw new Error(`A category with the slug "${updates.slug}" already exists. Please use a different slug.`);
+      }
+    }
+    
     await ctx.db.patch(id, updates);
     return null;
   },

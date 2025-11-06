@@ -17,8 +17,6 @@ export const list = query({
     status: v.optional(v.union(v.literal("draft"), v.literal("published"))),
   },
   handler: async (ctx, args) => {
-    let query = ctx.db.query("posts");
-
     // Handle search
     if (args.search) {
       const searchResults = await ctx.db
@@ -102,10 +100,12 @@ export const list = query({
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
+    // Use first() instead of unique() to handle duplicate slugs gracefully
     const post = await ctx.db
       .query("posts")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
-      .unique();
+      .order("desc") // Get the most recent one if duplicates exist
+      .first();
     
     if (!post) return null;
 
@@ -136,6 +136,16 @@ export const create = mutation({
   },
   returns: v.id("posts"),
   handler: async (ctx, args) => {
+    // Check if slug already exists
+    const existing = await ctx.db
+      .query("posts")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+    
+    if (existing) {
+      throw new Error(`A post with the slug "${args.slug}" already exists. Please use a different slug.`);
+    }
+    
     return await ctx.db.insert("posts", args);
   },
 });
@@ -153,6 +163,19 @@ export const update = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
+    
+    // Check if slug is being updated and if it already exists (excluding current post)
+    if (updates.slug) {
+      const existing = await ctx.db
+        .query("posts")
+        .withIndex("by_slug", (q) => q.eq("slug", updates.slug!))
+        .first();
+      
+      if (existing && existing._id !== id) {
+        throw new Error(`A post with the slug "${updates.slug}" already exists. Please use a different slug.`);
+      }
+    }
+    
     await ctx.db.patch(id, updates);
     return null;
   },
